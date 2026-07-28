@@ -1,0 +1,35 @@
+[project]
+name = "ha-tailscale-helper-integration"
+version = "0.1.0"
+description = "Home Assistant custom integration adding connectivity sensors to Tailscale devices"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=6.0",
+    "pytest-homeassistant-custom-component>=0.13",
+    "pre-commit>=4.0",
+    "pyright>=1.1",
+    "ruff>=0.11",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C901", "PIE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.coverage.report]
+# A floor, not a target. The suite sits at 100% and the CI job prints the real
+# table on every run, so this is here to catch a whole module or platform
+# landing untested -- which on a package this small is worth 15-20 points --
+# rather than to argue over a single line. Pinning it at today's number would
+# only teach people to reach for "# pragma: no cover" to get CI green.
+fail_under = 95

@@ -1,0 +1,14 @@
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:2026.7.4
+    ports:
+      - "8123:8123"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ha-config:/config
+      - ./custom_components/tailscale_helper:/config/custom_components/tailscale_helper:ro
+    restart: unless-stopped
+
+volumes:
+  ha-config:

@@ -1,0 +1,13 @@
+{
+  "domain": "tailscale_helper",
+  "name": "Tailscale Helper",
+  "after_dependencies": ["tailscale"],
+  "codeowners": ["@tobydoescode"],
+  "config_flow": true,
+  "documentation": "https://github.com/tobydoescode/hass-integration-tailscale-helper",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/tobydoescode/hass-integration-tailscale-helper/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

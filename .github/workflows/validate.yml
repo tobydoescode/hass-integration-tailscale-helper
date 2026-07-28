@@ -1,0 +1,22 @@
+name: HACS Validation
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: HACS validation
+        uses: hacs/action@main
+        with:
+          category: integration
+          # The brands check queries home-assistant/brands over the network, so
+          # it fails until the domain is registered there -- a separate PR on
+          # the HA team's review queue. Artwork ready in
+          # custom_components/tailscale_helper/brand/; drop this once it merges.
+          ignore: brands
+      - name: Hassfest validation
+        uses: home-assistant/actions/hassfest@master

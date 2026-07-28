@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run ruff
+        run: uv run ruff check custom_components/ tests/
+
+      - name: Check formatting
+        run: uv run ruff format --check custom_components/ tests/
+
+      - name: Pyright
+        run: uv run pyright custom_components/tailscale_helper/
+
+      - name: Run tests with coverage
+        run: |
+          set -euo pipefail
+          uv run python -m pytest tests/ -v \
+            --cov=custom_components.tailscale_helper \
+            --cov-report=term-missing \
+            --cov-report=html:coverage-html \
+            --cov-report=xml:coverage.xml \
+            | tee coverage.txt
+
+      - name: Write coverage summary
+        if: always()
+        run: |
+          {
+            echo "## Test Coverage"
+            echo ""
+            echo '```'
+            if [ -f coverage.txt ]; then
+              sed -n '/Name .* Stmts .* Miss .* Cover/,/TOTAL/p' coverage.txt
+            else
+              echo "coverage.txt was not generated."
+            fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-reports
+          path: |
+            coverage.txt
+            coverage.xml
+            coverage-html/
+          if-no-files-found: warn

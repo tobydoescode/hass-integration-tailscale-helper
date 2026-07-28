@@ -1,0 +1,33 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Tailscale Helper",
+        "description": "Adds a Connection state sensor to every device from the Tailscale integration. There is nothing to configure — devices are found automatically, and new ones are picked up as they join your tailnet."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Already configured. A single Tailscale Helper entry covers every Tailscale device."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Tailscale Helper",
+        "data": {
+          "threshold": "Consider disconnected after"
+        },
+        "data_description": {
+          "threshold": "How long a device may go without checking in to Tailscale before its Connection state turns off. The Tailscale integration refreshes once a minute, so values below about 120 seconds risk false disconnects."
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connection_state": {
+        "name": "Connection state"
+      }
+    }
+  }
+}
