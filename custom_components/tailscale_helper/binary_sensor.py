@@ -15,7 +15,11 @@ from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device import async_entity_id_to_device
-from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.entity_platform import (
+    AddConfigEntryEntitiesCallback,
+    EntityPlatform,
+    async_get_current_platform,
+)
 from homeassistant.helpers.event import (
     EventStateChangedData,
     async_track_state_change_event,
@@ -52,7 +56,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Tailscale Helper binary sensors."""
     threshold = timedelta(seconds=entry.options.get(CONF_THRESHOLD, DEFAULT_THRESHOLD))
-    tracker = _SourceTracker(hass, async_add_entities, threshold)
+    tracker = _SourceTracker(hass, async_add_entities, threshold, async_get_current_platform())
     entry.async_on_unload(async_at_started(hass, tracker.async_start(entry)))
 
 
@@ -64,11 +68,13 @@ class _SourceTracker:
         hass: HomeAssistant,
         async_add_entities: AddConfigEntryEntitiesCallback,
         threshold: timedelta,
+        platform: EntityPlatform,
     ) -> None:
         """Initialise the tracker."""
         self._hass = hass
         self._async_add_entities = async_add_entities
         self._threshold = threshold
+        self._platform = platform
         self._known: set[str] = set()
 
     def async_start(
@@ -125,6 +131,28 @@ class _SourceTracker:
         )
         if entity_id is not None:
             LOGGER.debug("Removing %s, its Tailscale source is gone", entity_id)
+            self._hass.async_create_task(self._async_remove_entity(entity_id))
+
+    async def _async_remove_entity(self, entity_id: str) -> None:
+        """Remove one of our sensors, entity and registry entry both.
+
+        Order matters. Going through the platform first is what stops the poll
+        timer: Home Assistant only cancels polling in
+        ``EntityPlatform.async_remove_entity``, and removing via the entity
+        registry takes a different path that drops the entity but leaves the
+        timer running. ``async_reset`` does not save us either -- it returns
+        early when no entities remain, before reaching ``async_unsub_polling``
+        -- so the timer would outlive even a config entry unload and go on
+        firing against an empty platform for the life of the process.
+
+        The registry entry is then removed separately, since the platform does
+        not do that and a ghost entry would linger in the UI.
+        """
+        if entity_id in self._platform.entities:
+            await self._platform.async_remove_entity(entity_id)
+
+        registry = er.async_get(self._hass)
+        if registry.async_get(entity_id) is not None:
             registry.async_remove(entity_id)
 
     @callback
