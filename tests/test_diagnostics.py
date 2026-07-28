@@ -8,6 +8,7 @@ from typing import Any
 
 import pytest
 from freezegun.api import FrozenDateTimeFactory
+from homeassistant.components.diagnostics import REDACTED
 from homeassistant.core import CoreState, HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.components.diagnostics import (
@@ -73,7 +74,7 @@ async def test_healthy_device_shows_the_whole_derivation(
 
     assert result["devices"] == [
         {
-            "device_id": "nODdc3",
+            "device_id": REDACTED,
             "source": "sensor.home_router_last_seen",
             "source_state": "2026-07-28T12:04:11+00:00",
             "age_seconds": 42.2,
@@ -101,7 +102,7 @@ async def test_unparseable_source_has_no_age(
 
     assert result["devices"] == [
         {
-            "device_id": "pQ81xa",
+            "device_id": REDACTED,
             "source": "sensor.old_phone_last_seen",
             "source_state": source_state,
             "age_seconds": None,
@@ -131,7 +132,7 @@ async def test_unavailable_device_is_still_reported(
 
     assert result["devices"] == [
         {
-            "device_id": "zZ99aa",
+            "device_id": REDACTED,
             "source": "sensor.dead_laptop_last_seen",
             "source_state": "unavailable",
             "age_seconds": None,
@@ -155,7 +156,7 @@ async def test_source_with_no_state_at_all(
 
     assert result["devices"] == [
         {
-            "device_id": "gH05t0",
+            "device_id": REDACTED,
             "source": "sensor.ghost_last_seen",
             "source_state": None,
             "age_seconds": None,
@@ -191,7 +192,7 @@ async def test_device_we_have_no_sensor_for_yet(
 
     assert result["devices"] == [
         {
-            "device_id": "nODdc3",
+            "device_id": REDACTED,
             "source": "sensor.home_router_last_seen",
             "source_state": "2026-07-28T12:04:11+00:00",
             "age_seconds": 42.2,
@@ -260,21 +261,21 @@ async def test_whole_dump_for_a_mixed_tailnet(
         "threshold_seconds": 300,
         "devices": [
             {
-                "device_id": "nODdc3",
+                "device_id": REDACTED,
                 "source": "sensor.home_router_last_seen",
                 "source_state": "2026-07-28T12:04:11+00:00",
                 "age_seconds": 42.2,
                 "is_on": True,
             },
             {
-                "device_id": "pQ81xa",
+                "device_id": REDACTED,
                 "source": "sensor.old_phone_last_seen",
                 "source_state": "unknown",
                 "age_seconds": None,
                 "is_on": False,
             },
             {
-                "device_id": "zZ99aa",
+                "device_id": REDACTED,
                 "source": "sensor.dead_laptop_last_seen",
                 "source_state": "unavailable",
                 "age_seconds": None,
@@ -313,7 +314,7 @@ async def test_home_assistant_serves_the_dump(
     assert len(data["devices"]) == 1
     device = data["devices"][0]
     assert device.keys() == {"device_id", "source", "source_state", "age_seconds", "is_on"}
-    assert device["device_id"] == "nODdc3"
+    assert device["device_id"] == REDACTED
     assert device["source"] == "sensor.home_router_last_seen"
     assert device["source_state"] == "2020-01-01T00:00:00+00:00"
     # Years old, so far past any threshold.

@@ -6,22 +6,28 @@ the state we published as a result. That is enough for a reader to check our
 arithmetic without running anything, which is the only way the characteristic
 "why does this say disconnected" report can be answered from a bug tracker.
 
-Nothing here is redacted, having been checked rather than assumed. We read
-exactly one sensor per device -- Tailscale's ``*_last_seen``, a timestamp -- and
-never touch the Tailscale config entry or its coordinator, so the values it
+No credential can reach this dump, having been checked rather than assumed. We
+read exactly one sensor per device -- Tailscale's ``*_last_seen``, a timestamp --
+and never touch the Tailscale config entry or its coordinator, so the values it
 redacts in its own diagnostics (API key, tailnet, addresses, endpoints, machine
-and node keys, user) cannot reach us. What remains is the Tailscale device id
-and, inside the entity ids, the device hostname. Tailscale's own diagnostics
-redact those too, but it is dumping a raw API payload where they sit beside
-node keys; ours is a derivation trace whose entire value is being able to match
-a row to the entity that looks wrong. Redacting them would leave a dump that
-answers nothing, and neither is a credential.
+and node keys, user) are all out of reach.
+
+The Tailscale device id **is** redacted, matching what Tailscale's own
+diagnostics does with it. It identifies a machine on someone's private network
+and buys the reader nothing: rows stay distinguishable by ``source``, which is
+what you actually match against a misbehaving entity.
+
+Note the entity id in ``source`` still contains the device's hostname. That is
+deliberate -- it is the whole basis for matching a row to the entity in front of
+you, and without it the dump answers nothing. Anyone posting a dump publicly
+should know their hostnames are in it.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
+from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
@@ -31,6 +37,8 @@ from homeassistant.util import dt as dt_util
 from .binary_sensor import UNIQUE_ID_SUFFIX
 from .const import CONF_THRESHOLD, DEFAULT_THRESHOLD, DOMAIN
 from .discovery import TailscaleSource, iter_sources
+
+TO_REDACT = {"device_id"}
 
 
 async def async_get_config_entry_diagnostics(
@@ -43,7 +51,7 @@ async def async_get_config_entry_diagnostics(
     return {
         "threshold_seconds": entry.options.get(CONF_THRESHOLD, DEFAULT_THRESHOLD),
         "devices": [
-            _device_diagnostics(hass, registry, source)
+            async_redact_data(_device_diagnostics(hass, registry, source), TO_REDACT)
             for source in sorted(iter_sources(hass), key=lambda source: source.device_id)
         ],
     }

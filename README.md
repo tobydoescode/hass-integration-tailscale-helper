@@ -92,7 +92,7 @@ arithmetic yourself:
   "threshold_seconds": 300,
   "devices": [
     {
-      "device_id": "nODdc3",
+      "device_id": "**REDACTED**",
       "source": "sensor.home_router_last_seen",
       "source_state": "2026-07-28T12:04:11+00:00",
       "age_seconds": 42.2,
@@ -101,6 +101,10 @@ arithmetic yourself:
   ]
 }
 ```
+
+The Tailscale device id is redacted. Note the entity id in `source` still contains
+the device's hostname — that is what makes a row matchable to the entity in front
+of you, so it stays. Worth knowing before pasting a dump somewhere public.
 
 Two things in there that look wrong but are not:
 
