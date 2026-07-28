@@ -2,7 +2,7 @@
 name = "ha-tailscale-helper-integration"
 version = "0.1.0"
 description = "Home Assistant custom integration adding connectivity sensors to Tailscale devices"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = []
 
 [project.optional-dependencies]
